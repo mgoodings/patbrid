@@ -1,0 +1,6 @@
+node_modules/
+download/
+watch/
+*.env*
+!.env.example
+*.log
