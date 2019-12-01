@@ -4,6 +4,7 @@ services:
   downloader:
     build: .
     restart: on-failure
+    command: yarn watch
     env_file: .env
     volumes:
       - /workspace/node_modules
