@@ -1,44 +1,44 @@
-const debug = require('debug')('patbrid:index')
-const DirWatcher = require('./lib/dir-watcher')
-const TorrentDownloader = require('./lib/torrent-downloader')
+const chokidar = require('chokidar')
+const RealDebridWatcher = require('./lib/watchers/real-debrid')
+const Aria2Downloader = require('./lib/downloaders/aria2')
 
 const {
-  API_KEY,
+  REAL_DEBRID_API_KEY,
+  ARIA2_URL,
+  ARIA2_SECRET,
   WATCH_DIR = '/watch',
-  DOWNLOAD_DIR = '/download',
-  TORRENT_CHECK_RATE = 15000
+  WATCH_RATE = 5000
 } = process.env
 
-if (!API_KEY) {
-  console.log('You must specify an API_KEY env var')
+if (!REAL_DEBRID_API_KEY) {
+  console.log('[!] REAL_DEBRID_API_KEY env var is not set')
+
+  process.exit(-1)
+}
+
+if (!ARIA2_URL) {
+  console.log('[!] ARIA2_URL env var is not set')
+
+  process.exit(-1)
+}
+
+if (!ARIA2_SECRET) {
+  console.log('[!] ARIA2_SECRET env var is not set')
 
   process.exit(-1)
 }
 
 // Create a downloader instance
-const downloader = new TorrentDownloader(API_KEY, DOWNLOAD_DIR)
+const downloader = new Aria2Downloader(ARIA2_URL, ARIA2_SECRET)
 
-// Setup a file event handler
-const handleTorrent = (torrentFile, exists) => {
-  debug('handleTorrent', torrentFile, exists)
+// Create a watcher instance
+const watcher = new RealDebridWatcher(REAL_DEBRID_API_KEY, downloader.download)
 
-  if (!exists) {
-    return
-  }
+// Watch for new torrent files
+console.log(`[+] Watching '${WATCH_DIR}' for new torrents`)
 
-  downloader.addTorrent(torrentFile)
-    .catch(err => console.error(err))
-}
+chokidar.watch(`${WATCH_DIR}/*.torrent`)
+  .on('add', path => watcher.addTorrent(path))
 
-// Start watching the directory
-new DirWatcher(WATCH_DIR, '.torrent', handleTorrent)
-
-console.log(`Watching '${WATCH_DIR}' for new torrents`)
-
-setInterval(() => {
-  console.log('Checking torrent watch list')
-
-  // Check the torrent watch list
-  downloader.checkWatchList()
-    .catch(err => console.error(err))
-}, TORRENT_CHECK_RATE)
+// Check the torrent watch list every "WATCH_RATE" ms
+setInterval(() => watcher.checkWatchList(), WATCH_RATE)

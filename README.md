@@ -1,13 +1,24 @@
 patbrid
 ===
 
-A Real-Debrid blackhole downloader.
+A real-debrid blackhole downloader using aria2 RPC.
 
-### Development (Docker)
+### Environment Variables
+
+Value | Description | Default
+--- | --- | ---
+REAL_DEBRID_API_KEY | Real Debrid API Key |
+ARIA2_URL | Aria2 JSON-RPC URL |
+ARIA2_SECRET | Aria2 JSON-RPC Secret |
+WATCH_DIR | Directory to watch | /watch
+WATCH_RATE | Rate to check for updates | 5000
+
+### Development
 
 #### Requirements
 
 * Docker
+* aria2 with JSON-RPC enabled
 
 #### Setup
 
@@ -18,23 +29,3 @@ Copy `.env.example` to `.env`
 `$ docker-compose build`
 
 `$ docker-compose run --rm downloader`
-
-### Development (Local)
-
-#### Requirements
-
-* NodeJS
-* Yarn
-* Axel
-
-#### Setup
-
-`$ export WATCH_DIR=./watch`
-
-`$ export DOWNLOAD_DIR=./download`
-
-`$ export API_KEY=<your-api-key>`
-
-#### Run
-
-`$ yarn watch`
